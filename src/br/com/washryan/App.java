@@ -4,274 +4,394 @@ import br.com.washryan.dao.ClienteMapDAO;
 import br.com.washryan.dao.IClienteDAO;
 import br.com.washryan.domain.Cliente;
 
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.util.Collection;
-import java.util.InputMismatchException;
-import java.util.Scanner;
 
-public class App {
-
+public class App extends JFrame {
+    
     private static IClienteDAO clienteDAO = new ClienteMapDAO();
-    private static Scanner scanner = new Scanner(System.in);
-
-    public static void main(String[] args) {
-        System.out.println("🚀 Bem-vindo ao Sistema de Cadastro de Clientes!");
-        System.out.println("📋 Desenvolvido para o Módulo 14 - Backend EBAC");
+    
+    // Componentes da interface
+    private JTextField txtNome, txtCpf, txtTelefone, txtEndereco, txtNumero, txtCidade, txtEstado;
+    private JTable tabelaClientes;
+    private DefaultTableModel modeloTabela;
+    private JButton btnCadastrar, btnConsultar, btnAlterar, btnExcluir, btnLimpar;
+    
+    public App() {
+        initComponents();
+        atualizarTabela();
+    }
+    
+    private void initComponents() {
+        setTitle("Sistema de Cadastro de Clientes - EBAC Módulo 14");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
         
-        int opcao = 0;
-        do {
-            try {
-                opcao = menu();
-                switch (opcao) {
-                    case 1 -> cadastrarCliente();
-                    case 2 -> consultarCliente();
-                    case 3 -> excluirCliente();
-                    case 4 -> alterarCliente();
-                    case 5 -> listarClientes();
-                    case 0 -> {
-                        System.out.println("👋 Encerrando aplicação...");
-                        System.out.println("✅ Obrigado por usar nosso sistema!");
-                    }
-                    default -> System.out.println("❌ Opção inválida! Tente novamente.");
+        // Painel principal
+        JPanel painelPrincipal = new JPanel(new BorderLayout());
+        
+        // Painel de formulário
+        JPanel painelFormulario = criarPainelFormulario();
+        
+        // Painel de botões
+        JPanel painelBotoes = criarPainelBotoes();
+        
+        // Painel da tabela
+        JPanel painelTabela = criarPainelTabela();
+        
+        // Adicionando componentes
+        painelPrincipal.add(painelFormulario, BorderLayout.NORTH);
+        painelPrincipal.add(painelBotoes, BorderLayout.CENTER);
+        painelPrincipal.add(painelTabela, BorderLayout.SOUTH);
+        
+        add(painelPrincipal);
+        
+        // Configurações da janela
+        setSize(800, 600);
+        setLocationRelativeTo(null);
+        setResizable(true);
+    }
+    
+    private JPanel criarPainelFormulario() {
+        JPanel painel = new JPanel(new GridBagLayout());
+        painel.setBorder(BorderFactory.createTitledBorder("Dados do Cliente"));
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+        
+        // Nome
+        gbc.gridx = 0; gbc.gridy = 0;
+        painel.add(new JLabel("Nome:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
+        txtNome = new JTextField(20);
+        painel.add(txtNome, gbc);
+        
+        // CPF
+        gbc.gridx = 2; gbc.fill = GridBagConstraints.NONE;
+        painel.add(new JLabel("CPF:"), gbc);
+        gbc.gridx = 3; gbc.fill = GridBagConstraints.HORIZONTAL;
+        txtCpf = new JTextField(15);
+        painel.add(txtCpf, gbc);
+        
+        // Telefone
+        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE;
+        painel.add(new JLabel("Telefone:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
+        txtTelefone = new JTextField(20);
+        painel.add(txtTelefone, gbc);
+        
+        // Endereço
+        gbc.gridx = 2; gbc.fill = GridBagConstraints.NONE;
+        painel.add(new JLabel("Endereço:"), gbc);
+        gbc.gridx = 3; gbc.fill = GridBagConstraints.HORIZONTAL;
+        txtEndereco = new JTextField(15);
+        painel.add(txtEndereco, gbc);
+        
+        // Número
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE;
+        painel.add(new JLabel("Número:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
+        txtNumero = new JTextField(20);
+        painel.add(txtNumero, gbc);
+        
+        // Cidade
+        gbc.gridx = 2; gbc.fill = GridBagConstraints.NONE;
+        painel.add(new JLabel("Cidade:"), gbc);
+        gbc.gridx = 3; gbc.fill = GridBagConstraints.HORIZONTAL;
+        txtCidade = new JTextField(15);
+        painel.add(txtCidade, gbc);
+        
+        // Estado
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE;
+        painel.add(new JLabel("Estado:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
+        txtEstado = new JTextField(20);
+        painel.add(txtEstado, gbc);
+        
+        return painel;
+    }
+    
+    private JPanel criarPainelBotoes() {
+        JPanel painel = new JPanel(new FlowLayout());
+        
+        btnCadastrar = new JButton("Cadastrar");
+        btnConsultar = new JButton("Consultar");
+        btnAlterar = new JButton("Alterar");
+        btnExcluir = new JButton("Excluir");
+        btnLimpar = new JButton("Limpar");
+        
+        // Adicionando listeners
+        btnCadastrar.addActionListener(e -> cadastrarCliente());
+        btnConsultar.addActionListener(e -> consultarCliente());
+        btnAlterar.addActionListener(e -> alterarCliente());
+        btnExcluir.addActionListener(e -> excluirCliente());
+        btnLimpar.addActionListener(e -> limparCampos());
+        
+        painel.add(btnCadastrar);
+        painel.add(btnConsultar);
+        painel.add(btnAlterar);
+        painel.add(btnExcluir);
+        painel.add(btnLimpar);
+        
+        return painel;
+    }
+    
+    private JPanel criarPainelTabela() {
+        JPanel painel = new JPanel(new BorderLayout());
+        painel.setBorder(BorderFactory.createTitledBorder("Clientes Cadastrados"));
+        
+        String[] colunas = {"Nome", "CPF", "Telefone", "Endereço", "Número", "Cidade", "Estado"};
+        modeloTabela = new DefaultTableModel(colunas, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Tabela não editável
+            }
+        };
+        
+        tabelaClientes = new JTable(modeloTabela);
+        tabelaClientes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tabelaClientes.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (evt.getClickCount() == 1) {
+                    preencherCamposComSelecao();
                 }
-            } catch (InputMismatchException e) {
-                System.out.println("❌ Por favor, digite apenas números!");
-                scanner.nextLine(); // Limpa o buffer
-            } catch (Exception e) {
-                System.out.println("❌ Erro inesperado: " + e.getMessage());
             }
-        } while (opcao != 0);
+        });
         
-        scanner.close();
+        JScrollPane scrollPane = new JScrollPane(tabelaClientes);
+        scrollPane.setPreferredSize(new Dimension(0, 200));
+        painel.add(scrollPane, BorderLayout.CENTER);
+        
+        return painel;
     }
-
-    private static int menu() {
-        System.out.println("\n" + "=".repeat(50));
-        System.out.println("🏢 SISTEMA DE CADASTRO DE CLIENTES");
-        System.out.println("=".repeat(50));
-        System.out.println("1️⃣  - Cadastrar cliente");
-        System.out.println("2️⃣  - Consultar cliente");
-        System.out.println("3️⃣  - Excluir cliente");
-        System.out.println("4️⃣  - Alterar cliente");
-        System.out.println("5️⃣  - Listar todos os clientes");
-        System.out.println("0️⃣  - Sair do sistema");
-        System.out.println("=".repeat(50));
-        System.out.print("👉 Digite sua opção: ");
-        
+    
+    private void cadastrarCliente() {
         try {
-            return Integer.parseInt(scanner.nextLine().trim());
-        } catch (NumberFormatException e) {
-            return -1; // Retorna valor inválido para tratar no switch
-        }
-    }
-
-    private static void cadastrarCliente() {
-        System.out.println("\n" + "─".repeat(40));
-        System.out.println("📝 CADASTRO DE NOVO CLIENTE");
-        System.out.println("─".repeat(40));
-        
-        try {
-            System.out.print("👤 Nome completo: ");
-            String nome = scanner.nextLine().trim();
-            if (nome.isEmpty()) {
-                System.out.println("❌ Nome não pode estar vazio!");
-                return;
-            }
-
-            System.out.print("🆔 CPF (apenas números ou com pontuação): ");
-            String cpf = scanner.nextLine().trim();
-            if (cpf.isEmpty()) {
-                System.out.println("❌ CPF não pode estar vazio!");
-                return;
-            }
-
-            System.out.print("📞 Telefone: ");
-            String telefone = scanner.nextLine().trim();
-
-            System.out.print("🏠 Endereço: ");
-            String endereco = scanner.nextLine().trim();
-
-            System.out.print("🔢 Número: ");
-            String numero = scanner.nextLine().trim();
-
-            System.out.print("🏙️ Cidade: ");
-            String cidade = scanner.nextLine().trim();
-
-            System.out.print("🗺️ Estado: ");
-            String estado = scanner.nextLine().trim();
-
-            Cliente cliente = new Cliente(nome, cpf, telefone, endereco, numero, cidade, estado);
-
-            if (clienteDAO.cadastrar(cliente)) {
-                System.out.println("✅ Cliente cadastrado com sucesso!");
-                System.out.println("📋 Dados salvos:");
-                System.out.println(cliente);
-            } else {
-                System.out.println("❌ Já existe um cliente com este CPF!");
-            }
-            
-        } catch (IllegalArgumentException e) {
-            System.out.println("❌ Erro nos dados: " + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("❌ Erro inesperado ao cadastrar: " + e.getMessage());
-        }
-    }
-
-    private static void consultarCliente() {
-        System.out.println("\n" + "─".repeat(40));
-        System.out.println("🔍 CONSULTAR CLIENTE");
-        System.out.println("─".repeat(40));
-        
-        try {
-            System.out.print("🆔 Digite o CPF: ");
-            String cpfStr = scanner.nextLine().trim();
-            
-            if (cpfStr.isEmpty()) {
-                System.out.println("❌ CPF não pode estar vazio!");
-                return;
-            }
-            
-            // Remove formatação do CPF
-            String cpfLimpo = cpfStr.replaceAll("[^0-9]", "");
-            Long cpf = Long.valueOf(cpfLimpo);
-            Cliente cliente = clienteDAO.consultar(cpf);
-            
-            if (cliente != null) {
-                System.out.println("✅ Cliente encontrado:");
-                System.out.println(cliente);
-            } else {
-                System.out.println("❌ Cliente não encontrado!");
-            }
-            
-        } catch (NumberFormatException e) {
-            System.out.println("❌ CPF inválido! Digite apenas números.");
-        }
-    }
-
-    private static void excluirCliente() {
-        System.out.println("\n" + "─".repeat(40));
-        System.out.println("🗑️ EXCLUIR CLIENTE");
-        System.out.println("─".repeat(40));
-        
-        try {
-            System.out.print("🆔 Digite o CPF do cliente a excluir: ");
-            String cpfStr = scanner.nextLine().trim();
-            
-            if (cpfStr.isEmpty()) {
-                System.out.println("❌ CPF não pode estar vazio!");
-                return;
-            }
-            
-            String cpfLimpo = cpfStr.replaceAll("[^0-9]", "");
-            Long cpf = Long.valueOf(cpfLimpo);
-            Cliente cliente = clienteDAO.consultar(cpf);
-            
-            if (cliente != null) {
-                System.out.println("📋 Cliente encontrado:");
-                System.out.println(cliente);
-                System.out.print("⚠️ Tem certeza que deseja excluir? (S/N): ");
-                String confirmacao = scanner.nextLine().trim().toUpperCase();
+            if (validarCampos()) {
+                String cpfLimpo = txtCpf.getText().replaceAll("[^0-9]", "");
                 
-                if ("S".equals(confirmacao) || "SIM".equals(confirmacao)) {
-                    clienteDAO.excluir(cpf);
-                    System.out.println("✅ Cliente excluído com sucesso!");
+                Cliente cliente = new Cliente(
+                    txtNome.getText().trim(),
+                    cpfLimpo,
+                    txtTelefone.getText().trim(),
+                    txtEndereco.getText().trim(),
+                    txtNumero.getText().trim(),
+                    txtCidade.getText().trim(),
+                    txtEstado.getText().trim()
+                );
+                
+                if (clienteDAO.cadastrar(cliente)) {
+                    JOptionPane.showMessageDialog(this, "Cliente cadastrado com sucesso!", 
+                        "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                    limparCampos();
+                    atualizarTabela();
                 } else {
-                    System.out.println("❌ Operação cancelada.");
+                    JOptionPane.showMessageDialog(this, "Já existe um cliente com este CPF!", 
+                        "Erro", JOptionPane.ERROR_MESSAGE);
                 }
-            } else {
-                System.out.println("❌ Cliente não encontrado!");
             }
-            
-        } catch (NumberFormatException e) {
-            System.out.println("❌ CPF inválido! Digite apenas números.");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao cadastrar cliente: " + e.getMessage(), 
+                "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
-
-    private static void alterarCliente() {
-        System.out.println("\n" + "─".repeat(40));
-        System.out.println("✏️ ALTERAR DADOS DO CLIENTE");
-        System.out.println("─".repeat(40));
+    
+    private void consultarCliente() {
+        String cpf = txtCpf.getText().trim();
+        if (cpf.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Digite o CPF para consultar!", 
+                "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         
         try {
-            System.out.print("🆔 Digite o CPF do cliente: ");
-            String cpfStr = scanner.nextLine().trim();
+            String cpfLimpo = cpf.replaceAll("[^0-9]", "");
+            Cliente cliente = clienteDAO.consultar(Long.valueOf(cpfLimpo));
             
-            if (cpfStr.isEmpty()) {
-                System.out.println("❌ CPF não pode estar vazio!");
-                return;
-            }
-            
-            String cpfLimpo = cpfStr.replaceAll("[^0-9]", "");
-            Long cpf = Long.valueOf(cpfLimpo);
-            Cliente cliente = clienteDAO.consultar(cpf);
-
             if (cliente != null) {
-                System.out.println("📋 Dados atuais:");
-                System.out.println(cliente);
-                System.out.println("\n💡 Digite os novos dados (ENTER para manter o atual):");
-
-                System.out.print("👤 Nome [" + cliente.getNome() + "]: ");
-                String nome = scanner.nextLine().trim();
-                if (!nome.isEmpty()) cliente.setNome(nome);
-
-                System.out.print("📞 Telefone [" + cliente.getTelefone() + "]: ");
-                String telefone = scanner.nextLine().trim();
-                if (!telefone.isEmpty()) cliente.setTelefone(telefone);
-
-                System.out.print("🏠 Endereço [" + cliente.getEndereco() + "]: ");
-                String endereco = scanner.nextLine().trim();
-                if (!endereco.isEmpty()) cliente.setEndereco(endereco);
-
-                System.out.print("🔢 Número [" + cliente.getNumero() + "]: ");
-                String numero = scanner.nextLine().trim();
-                if (!numero.isEmpty()) {
-                    try {
-                        cliente.setNumero(Integer.valueOf(numero));
-                    } catch (NumberFormatException e) {
-                        System.out.println("⚠️ Número inválido, mantendo o anterior.");
-                    }
-                }
-
-                System.out.print("🏙️ Cidade [" + cliente.getCidade() + "]: ");
-                String cidade = scanner.nextLine().trim();
-                if (!cidade.isEmpty()) cliente.setCidade(cidade);
-
-                System.out.print("🗺️ Estado [" + cliente.getEstado() + "]: ");
-                String estado = scanner.nextLine().trim();
-                if (!estado.isEmpty()) cliente.setEstado(estado);
-
-                clienteDAO.alterar(cliente);
-                System.out.println("✅ Cliente alterado com sucesso!");
-                System.out.println("📋 Novos dados:");
-                System.out.println(cliente);
+                preencherCampos(cliente);
+                JOptionPane.showMessageDialog(this, "Cliente encontrado!", 
+                    "Sucesso", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                System.out.println("❌ Cliente não encontrado!");
+                JOptionPane.showMessageDialog(this, "Cliente não encontrado!", 
+                    "Aviso", JOptionPane.WARNING_MESSAGE);
             }
-            
         } catch (NumberFormatException e) {
-            System.out.println("❌ CPF inválido! Digite apenas números.");
+            JOptionPane.showMessageDialog(this, "CPF inválido!", 
+                "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
-
-    private static void listarClientes() {
-        System.out.println("\n" + "─".repeat(50));
-        System.out.println("📋 LISTA DE TODOS OS CLIENTES");
-        System.out.println("─".repeat(50));
+    
+    private void alterarCliente() {
+        String cpf = txtCpf.getText().trim();
+        if (cpf.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Digite o CPF do cliente a alterar!", 
+                "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         
+        try {
+            String cpfLimpo = cpf.replaceAll("[^0-9]", "");
+            Cliente cliente = clienteDAO.consultar(Long.valueOf(cpfLimpo));
+            
+            if (cliente != null) {
+                if (validarCampos()) {
+                    cliente.setNome(txtNome.getText().trim());
+                    cliente.setTelefone(txtTelefone.getText().trim());
+                    cliente.setEndereco(txtEndereco.getText().trim());
+                    cliente.setNumero(Integer.valueOf(txtNumero.getText().trim()));
+                    cliente.setCidade(txtCidade.getText().trim());
+                    cliente.setEstado(txtEstado.getText().trim());
+                    
+                    clienteDAO.alterar(cliente);
+                    JOptionPane.showMessageDialog(this, "Cliente alterado com sucesso!", 
+                        "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                    atualizarTabela();
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Cliente não encontrado!", 
+                    "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "CPF ou número inválido!", 
+                "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void excluirCliente() {
+        String cpf = txtCpf.getText().trim();
+        if (cpf.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Digite o CPF do cliente a excluir!", 
+                "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        try {
+            String cpfLimpo = cpf.replaceAll("[^0-9]", "");
+            Cliente cliente = clienteDAO.consultar(Long.valueOf(cpfLimpo));
+            
+            if (cliente != null) {
+                int confirmacao = JOptionPane.showConfirmDialog(this, 
+                    "Tem certeza que deseja excluir o cliente " + cliente.getNome() + "?", 
+                    "Confirmar Exclusão", JOptionPane.YES_NO_OPTION);
+                
+                if (confirmacao == JOptionPane.YES_OPTION) {
+                    clienteDAO.excluir(Long.valueOf(cpfLimpo));
+                    JOptionPane.showMessageDialog(this, "Cliente excluído com sucesso!", 
+                        "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                    limparCampos();
+                    atualizarTabela();
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Cliente não encontrado!", 
+                    "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "CPF inválido!", 
+                "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void limparCampos() {
+        txtNome.setText("");
+        txtCpf.setText("");
+        txtTelefone.setText("");
+        txtEndereco.setText("");
+        txtNumero.setText("");
+        txtCidade.setText("");
+        txtEstado.setText("");
+    }
+    
+    private void preencherCampos(Cliente cliente) {
+        txtNome.setText(cliente.getNome());
+        txtCpf.setText(cliente.getCpf().toString());
+        txtTelefone.setText(cliente.getTelefone());
+        txtEndereco.setText(cliente.getEndereco());
+        txtNumero.setText(cliente.getNumero().toString());
+        txtCidade.setText(cliente.getCidade());
+        txtEstado.setText(cliente.getEstado());
+    }
+    
+    private void preencherCamposComSelecao() {
+        int linhaSelecionada = tabelaClientes.getSelectedRow();
+        if (linhaSelecionada >= 0) {
+            txtNome.setText((String) modeloTabela.getValueAt(linhaSelecionada, 0));
+            txtCpf.setText((String) modeloTabela.getValueAt(linhaSelecionada, 1));
+            txtTelefone.setText((String) modeloTabela.getValueAt(linhaSelecionada, 2));
+            txtEndereco.setText((String) modeloTabela.getValueAt(linhaSelecionada, 3));
+            txtNumero.setText((String) modeloTabela.getValueAt(linhaSelecionada, 4));
+            txtCidade.setText((String) modeloTabela.getValueAt(linhaSelecionada, 5));
+            txtEstado.setText((String) modeloTabela.getValueAt(linhaSelecionada, 6));
+        }
+    }
+    
+    private boolean validarCampos() {
+        if (txtNome.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nome é obrigatório!", 
+                "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+            txtNome.requestFocus();
+            return false;
+        }
+        
+        if (txtCpf.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "CPF é obrigatório!", 
+                "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+            txtCpf.requestFocus();
+            return false;
+        }
+        
+        try {
+            if (!txtNumero.getText().trim().isEmpty()) {
+                Integer.valueOf(txtNumero.getText().trim());
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Número deve ser um valor numérico!", 
+                "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+            txtNumero.requestFocus();
+            return false;
+        }
+        
+        return true;
+    }
+    
+    private void atualizarTabela() {
+        modeloTabela.setRowCount(0);
         Collection<Cliente> clientes = clienteDAO.buscarTodos();
         
-        if (clientes.isEmpty()) {
-            System.out.println("📭 Nenhum cliente cadastrado ainda.");
-            System.out.println("💡 Use a opção 1 para cadastrar o primeiro cliente!");
-        } else {
-            System.out.println("📊 Total de clientes: " + clientes.size());
-            System.out.println();
-            
-            int contador = 1;
-            for (Cliente cliente : clientes) {
-                System.out.println("👤 Cliente #" + contador++);
-                System.out.println(cliente);
-                System.out.println();
-            }
+        for (Cliente cliente : clientes) {
+            Object[] linha = {
+                cliente.getNome(),
+                formatarCpf(cliente.getCpf().toString()),
+                cliente.getTelefone(),
+                cliente.getEndereco(),
+                cliente.getNumero(),
+                cliente.getCidade(),
+                cliente.getEstado()
+            };
+            modeloTabela.addRow(linha);
         }
+    }
+    
+    private String formatarCpf(String cpf) {
+        if (cpf.length() == 11) {
+            return cpf.substring(0, 3) + "." + cpf.substring(3, 6) + "." + 
+                   cpf.substring(6, 9) + "-" + cpf.substring(9);
+        }
+        return cpf;
+    }
+    
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            new App().setVisible(true);
+        });
     }
 }
